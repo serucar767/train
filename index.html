@@ -322,12 +322,8 @@
 
             const header = document.createElement('div');
             header.className = 'line-header';
-            header.innerHTML = `
-    <span class="line-name">${lineName}</span>
-    <span style="font-size: 11px; color: #666;">
-        ${lineStations.filter(s => visitedGids.includes(s.gid)).length} / ${lineStations.length}
-    </span>
-`;
+            header.innerHTML = ` <span class="line-name">${lineName}</span><span style="font-size: 11px; color: #666;">${lineStations.filter(s => visitedGids.includes(s.gid)).length} / ${lineStations.length}
+           </span>`;
             header.onclick = () => section.classList.toggle('collapsed');
 
             const grid = document.createElement('div');
@@ -371,5 +367,6 @@
 </body>
 
 </html>
+
 
 
