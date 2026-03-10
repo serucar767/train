@@ -233,19 +233,16 @@
 
     async function init() {
         try {
-            // CSVの読み込み
             const [stRes, lnRes] = await Promise.all([
                 fetch('station.csv').then(r => r.text()),
                 fetch('line.csv').then(r => r.text())
             ]);
 
-            // 路線マスタの作成
             lnRes.split('\n').slice(1).forEach(row => {
                 const [code, name] = row.split(',');
                 if(code) lines[code.trim()] = name.trim();
             });
 
-            // 駅データのフィルタリングと整形
             stations = stRes.split('\n').slice(1).map(row => {
                 const [sid, gid, name, lineCd, pref] = row.split(',');
                 return {
@@ -260,7 +257,7 @@
             render();
         } catch (e) {
             console.error("データ読み込みエラー:", e);
-            alert("CSVファイルの読み込みに失敗しました。ファイルが正しい場所に配置されているか確認してください。");
+            alert("CSVファイルの読み込みに失敗しました。ファイル配置を確認してください。");
         }
     }
 
@@ -275,7 +272,6 @@
     }
 
     function updateUI() {
-        // 全チップの更新
         document.querySelectorAll('.station-chip').forEach(chip => {
             const gid = chip.dataset.gid;
             if (visitedGids.includes(gid)) {
@@ -285,7 +281,6 @@
             }
         });
 
-        // 統計の計算
         const getStats = (prefId) => {
             const targets = stations.filter(s => prefId === 'all' ? true : s.pref === prefId);
             const uniqueGids = [...new Set(targets.map(s => s.gid))];
@@ -295,7 +290,6 @@
             return { percent, visited, total };
         };
 
-        // バーの更新
         ['all', 11, 12, 13, 14].forEach(id => {
             const { percent, visited, total } = getStats(id);
             document.getElementById(`bar-${id}`).style.width = `${percent}%`;
@@ -307,7 +301,6 @@
         const lineList = document.getElementById('lineList');
         lineList.innerHTML = '';
 
-        // 路線ごとにグループ化
         const grouped = {};
         stations.forEach(s => {
             const lineName = lines[s.lineCd] || `路線コード:${s.lineCd}`;
@@ -315,21 +308,28 @@
             grouped[lineName].push(s);
         });
 
-        // 路線名順にソートして描画
         Object.keys(grouped).sort().forEach(lineName => {
+            const lineStations = grouped[lineName]; // ここで変数を定義
             const section = document.createElement('div');
-            section.className = 'line-section collapsed'; // 初期状態は閉じる
+            section.className = 'line-section collapsed';
 
             const header = document.createElement('div');
             header.className = 'line-header';
-            header.innerHTML = ` <span class="line-name">${lineName}</span><span style="font-size: 11px; color: #666;">${lineStations.filter(s => visitedGids.includes(s.gid)).length} / ${lineStations.length}
-           </span>`;
+            
+            // 路線ごとのカウント計算
+            const visitedCount = lineStations.filter(s => visitedGids.includes(s.gid)).length;
+            const totalCount = lineStations.length;
+
+            header.innerHTML = `
+                <span class="line-name">${lineName}</span>
+                <span style="font-size: 11px; color: #666;">${visitedCount} / ${totalCount}</span>
+            `;
             header.onclick = () => section.classList.toggle('collapsed');
 
             const grid = document.createElement('div');
             grid.className = 'station-grid';
 
-            grouped[lineName].forEach(s => {
+            lineStations.forEach(s => {
                 const chip = document.createElement('div');
                 chip.className = 'station-chip';
                 chip.innerText = s.name;
@@ -349,13 +349,12 @@
         updateUI();
     }
 
-    // 画像保存
     document.getElementById('saveBtn').onclick = () => {
-        const target = document.querySelector('header'); /*only capture for header*/
-        // 保存時だけアコーディオンを全開にする場合はここを調整
-        html2canvas(area, { scale: 3, backgroundColor: "#f8f9fa" }).then(canvas => {
+        const target = document.querySelector('header'); 
+        // area ではなく target を使用するように修正
+        html2canvas(target, { scale: 3, backgroundColor: "#ffffff" }).then(canvas => {
             const link = document.createElement('a');
-            link.download = 'station-rally-log.png';
+            link.download = 'station-rally-summary.png';
             link.href = canvas.toDataURL();
             link.click();
         });
@@ -367,6 +366,7 @@
 </body>
 
 </html>
+
 
 
 
