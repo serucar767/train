@@ -226,7 +226,7 @@
 </div>
 
 <script>
-    let stations = [];
+let stations = [];
     let lines = {};
     let visitedGids = JSON.parse(localStorage.getItem('station_rally_1to3ken')) || [];
     const TARGET_PREFS = [11, 12, 13, 14];
@@ -257,7 +257,7 @@
             render();
         } catch (e) {
             console.error("データ読み込みエラー:", e);
-            alert("CSVファイルの読み込みに失敗しました。ファイル配置を確認してください。");
+            alert("CSVファイルの読み込みに失敗しました。");
         }
     }
 
@@ -272,6 +272,7 @@
     }
 
     function updateUI() {
+        // 1. 全チップの更新
         document.querySelectorAll('.station-chip').forEach(chip => {
             const gid = chip.dataset.gid;
             if (visitedGids.includes(gid)) {
@@ -281,6 +282,7 @@
             }
         });
 
+        // 2. 都道府県別統計の更新
         const getStats = (prefId) => {
             const targets = stations.filter(s => prefId === 'all' ? true : s.pref === prefId);
             const uniqueGids = [...new Set(targets.map(s => s.gid))];
@@ -294,6 +296,20 @@
             const { percent, visited, total } = getStats(id);
             document.getElementById(`bar-${id}`).style.width = `${percent}%`;
             document.getElementById(`text-${id}`).innerHTML = `${percent}% <small>(${visited}/${total})</small>`;
+        });
+
+        // 3. 路線ごとの訪問数を更新 (追加)
+        document.querySelectorAll('.line-section').forEach(section => {
+            const lineName = section.querySelector('.line-name').innerText;
+            // この路線の全駅を抽出
+            const lineStations = stations.filter(s => (lines[s.lineCd] || `路線コード:${s.lineCd}`) === lineName);
+            const visitedCount = lineStations.filter(s => visitedGids.includes(s.gid)).length;
+            const totalCount = lineStations.length;
+            // 表示を書き換え
+            const countSpan = section.querySelector('.line-count');
+            if (countSpan) {
+                countSpan.innerText = `${visitedCount} / ${totalCount}`;
+            }
         });
     }
 
@@ -309,20 +325,19 @@
         });
 
         Object.keys(grouped).sort().forEach(lineName => {
-            const lineStations = grouped[lineName]; // ここで変数を定義
+            const lineStations = grouped[lineName]; // 修正: 変数を定義
             const section = document.createElement('div');
             section.className = 'line-section collapsed';
 
             const header = document.createElement('div');
             header.className = 'line-header';
             
-            // 路線ごとのカウント計算
-            const visitedCount = lineStations.filter(s => visitedGids.includes(s.gid)).length;
-            const totalCount = lineStations.length;
-
+            // 修正: クラス "line-count" を付与
             header.innerHTML = `
                 <span class="line-name">${lineName}</span>
-                <span style="font-size: 11px; color: #666;">${visitedCount} / ${totalCount}</span>
+                <span class="line-count" style="font-size: 11px; color: #666;">
+                    ${lineStations.filter(s => visitedGids.includes(s.gid)).length} / ${lineStations.length}
+                </span>
             `;
             header.onclick = () => section.classList.toggle('collapsed');
 
@@ -349,9 +364,9 @@
         updateUI();
     }
 
+    // 画像保存
     document.getElementById('saveBtn').onclick = () => {
-        const target = document.querySelector('header'); 
-        // area ではなく target を使用するように修正
+        const target = document.querySelector('header'); // headerのみをキャプチャ
         html2canvas(target, { scale: 3, backgroundColor: "#ffffff" }).then(canvas => {
             const link = document.createElement('a');
             link.download = 'station-rally-summary.png';
@@ -366,6 +381,7 @@
 </body>
 
 </html>
+
 
 
 
