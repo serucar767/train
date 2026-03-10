@@ -196,17 +196,17 @@
                 <div id="text-all" class="percent-text">0% (0/0)</div>
             </div>
             <div class="stat-row">
-                <div class="pref-name">埼玉</div>
+                <div class="pref-name">埼 玉</div>
                 <div class="progress-container"><div id="bar-11" class="progress-fill"></div></div>
                 <div id="text-11" class="percent-text">0%</div>
             </div>
             <div class="stat-row">
-                <div class="pref-name">千葉</div>
+                <div class="pref-name">千 葉</div>
                 <div class="progress-container"><div id="bar-12" class="progress-fill"></div></div>
                 <div id="text-12" class="percent-text">0%</div>
             </div>
             <div class="stat-row">
-                <div class="pref-name">東京</div>
+                <div class="pref-name">東 京</div>
                 <div class="progress-container"><div id="bar-13" class="progress-fill"></div></div>
                 <div id="text-13" class="percent-text">0%</div>
             </div>
@@ -322,7 +322,12 @@
 
             const header = document.createElement('div');
             header.className = 'line-header';
-            header.innerHTML = `<span class="line-name">${lineName}</span>`;
+            header.innerHTML = `
+    <span class="line-name">${lineName}</span>
+    <span style="font-size: 11px; color: #666;">
+        ${lineStations.filter(s => visitedGids.includes(s.gid)).length} / ${lineStations.length}
+    </span>
+`;
             header.onclick = () => section.classList.toggle('collapsed');
 
             const grid = document.createElement('div');
@@ -350,9 +355,9 @@
 
     // 画像保存
     document.getElementById('saveBtn').onclick = () => {
-        const area = document.getElementById('captureArea');
+        const target = document.querySelector('header'); /*only capture for header*/
         // 保存時だけアコーディオンを全開にする場合はここを調整
-        html2canvas(area, { scale: 2, backgroundColor: "#f8f9fa" }).then(canvas => {
+        html2canvas(area, { scale: 3, backgroundColor: "#f8f9fa" }).then(canvas => {
             const link = document.createElement('a');
             link.download = 'station-rally-log.png';
             link.href = canvas.toDataURL();
@@ -366,4 +371,5 @@
 </body>
 
 </html>
+
 
